@@ -1,0 +1,1158 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "NARA Academic Schedule & WhatsApp Reminder API",
+        "description": "REST API for managing semesters, courses, lecturers, PICs, schedules, and automated WhatsApp reminders via Fonnte.",
+        "contact": {
+            "email": "admin@nara.local"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8000",
+            "description": "NARA API Server"
+        }
+    ],
+    "paths": {
+        "/api/courses": {
+            "get": {
+                "tags": [
+                    "Courses"
+                ],
+                "summary": "Get list of courses",
+                "description": "Returns list of all courses with semester info",
+                "operationId": "getCoursesList",
+                "parameters": [
+                    {
+                        "name": "semester_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Courses"
+                ],
+                "summary": "Create new course",
+                "description": "Creates a new course record",
+                "operationId": "storeCourse",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "semester_id",
+                                    "code",
+                                    "name"
+                                ],
+                                "properties": {
+                                    "semester_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "code": {
+                                        "type": "string",
+                                        "example": "SIB261005"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Critical Thinking and Problem Solving"
+                                    },
+                                    "credits": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "hours": {
+                                        "type": "integer",
+                                        "example": 4
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Course created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/courses/{id}": {
+            "get": {
+                "tags": [
+                    "Courses"
+                ],
+                "summary": "Get course by ID",
+                "description": "Returns single course data with schedules",
+                "operationId": "getCourseById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Courses"
+                ],
+                "summary": "Update existing course",
+                "description": "Updates a course record",
+                "operationId": "updateCourse",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "semester_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "code": {
+                                        "type": "string",
+                                        "example": "SIB261005"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Critical Thinking and Problem Solving"
+                                    },
+                                    "credits": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "hours": {
+                                        "type": "integer",
+                                        "example": 4
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Course updated successfully"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Courses"
+                ],
+                "summary": "Delete course",
+                "description": "Deletes a course record",
+                "operationId": "deleteCourse",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Course deleted successfully"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            }
+        },
+        "/api/course-pics": {
+            "get": {
+                "tags": [
+                    "Course PICs"
+                ],
+                "summary": "Get list of course PICs",
+                "description": "Returns list of all course PICs (Penanggung Jawab Mata Kuliah)",
+                "operationId": "getCoursePicsList",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Course PICs"
+                ],
+                "summary": "Create new course PIC",
+                "description": "Creates a new course PIC record",
+                "operationId": "storeCoursePic",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "gender",
+                                    "phone_number"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Rezky"
+                                    },
+                                    "gender": {
+                                        "type": "string",
+                                        "example": "male",
+                                        "enum": [
+                                            "male",
+                                            "female"
+                                        ]
+                                    },
+                                    "phone_number": {
+                                        "type": "string",
+                                        "example": "081234567801"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Course PIC created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/course-pics/{id}": {
+            "get": {
+                "tags": [
+                    "Course PICs"
+                ],
+                "summary": "Get course PIC by ID",
+                "description": "Returns single course PIC data",
+                "operationId": "getCoursePicById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Course PICs"
+                ],
+                "summary": "Update existing course PIC",
+                "description": "Updates a course PIC record",
+                "operationId": "updateCoursePic",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Rezky"
+                                    },
+                                    "gender": {
+                                        "type": "string",
+                                        "example": "male",
+                                        "enum": [
+                                            "male",
+                                            "female"
+                                        ]
+                                    },
+                                    "phone_number": {
+                                        "type": "string",
+                                        "example": "081234567801"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Course PIC updated successfully"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Course PICs"
+                ],
+                "summary": "Delete course PIC",
+                "description": "Deletes a course PIC record",
+                "operationId": "deleteCoursePic",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Course PIC deleted successfully"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            }
+        },
+        "/api/lecturers": {
+            "get": {
+                "tags": [
+                    "Lecturers"
+                ],
+                "summary": "Get list of lecturers",
+                "description": "Returns list of all lecturers",
+                "operationId": "getLecturersList",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Lecturers"
+                ],
+                "summary": "Create new lecturer",
+                "description": "Creates a new lecturer record",
+                "operationId": "storeLecturer",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "gender"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Ir. Rudy Ariyanto, S.T., M.Cs."
+                                    },
+                                    "gender": {
+                                        "type": "string",
+                                        "example": "male",
+                                        "enum": [
+                                            "male",
+                                            "female"
+                                        ]
+                                    },
+                                    "phone_number": {
+                                        "type": "string",
+                                        "example": "081234567890"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Lecturer created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/lecturers/{id}": {
+            "get": {
+                "tags": [
+                    "Lecturers"
+                ],
+                "summary": "Get lecturer by ID",
+                "description": "Returns single lecturer data",
+                "operationId": "getLecturerById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Lecturers"
+                ],
+                "summary": "Update existing lecturer",
+                "description": "Updates a lecturer record",
+                "operationId": "updateLecturer",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Vivin Ayu Lestari, S.Pd., M.Kom."
+                                    },
+                                    "gender": {
+                                        "type": "string",
+                                        "example": "female",
+                                        "enum": [
+                                            "male",
+                                            "female"
+                                        ]
+                                    },
+                                    "phone_number": {
+                                        "type": "string",
+                                        "example": "081234567891"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Lecturer updated successfully"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Lecturers"
+                ],
+                "summary": "Delete lecturer",
+                "description": "Deletes a lecturer record",
+                "operationId": "deleteLecturer",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lecturer deleted successfully"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            }
+        },
+        "/api/reminders/test-whatsapp": {
+            "post": {
+                "tags": [
+                    "Reminders"
+                ],
+                "summary": "Test WhatsApp message delivery via Fonnte",
+                "description": "Sends a test WhatsApp message to verify Fonnte gateway configuration",
+                "operationId": "testWhatsAppMessage",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "phone_number"
+                                ],
+                                "properties": {
+                                    "phone_number": {
+                                        "type": "string",
+                                        "example": "081234567890"
+                                    },
+                                    "message": {
+                                        "type": "string",
+                                        "example": "Halo! Ini adalah pesan pengujian WhatsApp dari NARA Assistant."
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Message processed"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/reminders/trigger-morning": {
+            "post": {
+                "tags": [
+                    "Reminders"
+                ],
+                "summary": "Manually trigger Morning Reminders",
+                "description": "Triggers the 05:00 AM morning reminder for today's classes (or a specific overridden day)",
+                "operationId": "triggerMorningReminder",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "dry_run": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "day": {
+                                        "type": "string",
+                                        "example": "monday",
+                                        "enum": [
+                                            "monday",
+                                            "tuesday",
+                                            "wednesday",
+                                            "thursday",
+                                            "friday",
+                                            "saturday",
+                                            "sunday"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Reminders triggered"
+                    }
+                }
+            }
+        },
+        "/api/reminders/trigger-preclass": {
+            "post": {
+                "tags": [
+                    "Reminders"
+                ],
+                "summary": "Manually trigger Pre-Class Reminders (H-1 Hour)",
+                "description": "Triggers the 1-hour pre-class reminder check",
+                "operationId": "triggerPreclassReminder",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "dry_run": {
+                                        "type": "boolean",
+                                        "example": false
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Reminders triggered"
+                    }
+                }
+            }
+        },
+        "/api/reminders/logs": {
+            "get": {
+                "tags": [
+                    "Reminders"
+                ],
+                "summary": "Get reminder delivery logs",
+                "description": "Returns delivery history and status of automated WhatsApp reminders",
+                "operationId": "getReminderLogs",
+                "parameters": [
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "morning",
+                                "pre_class"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "sent",
+                                "failed",
+                                "pending"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "date",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            }
+        },
+        "/api/schedules": {
+            "get": {
+                "tags": [
+                    "Schedules"
+                ],
+                "summary": "Get list of academic schedules",
+                "description": "Returns list of class schedules with filters for day, semester, and active status",
+                "operationId": "getSchedulesList",
+                "parameters": [
+                    {
+                        "name": "day",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "monday",
+                                "tuesday",
+                                "wednesday",
+                                "thursday",
+                                "friday",
+                                "saturday",
+                                "sunday"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "semester_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "is_active",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Schedules"
+                ],
+                "summary": "Create new schedule",
+                "description": "Creates a new academic class schedule",
+                "operationId": "storeSchedule",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "course_id",
+                                    "lecturer_id",
+                                    "day",
+                                    "start_time",
+                                    "end_time"
+                                ],
+                                "properties": {
+                                    "course_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "lecturer_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "course_pic_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "day": {
+                                        "type": "string",
+                                        "example": "monday",
+                                        "enum": [
+                                            "monday",
+                                            "tuesday",
+                                            "wednesday",
+                                            "thursday",
+                                            "friday",
+                                            "saturday",
+                                            "sunday"
+                                        ]
+                                    },
+                                    "start_time": {
+                                        "type": "string",
+                                        "example": "07:00:00"
+                                    },
+                                    "end_time": {
+                                        "type": "string",
+                                        "example": "10:35:00"
+                                    },
+                                    "room": {
+                                        "type": "string",
+                                        "example": "RT-01"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Schedule created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/schedules/{id}": {
+            "get": {
+                "tags": [
+                    "Schedules"
+                ],
+                "summary": "Get schedule by ID",
+                "description": "Returns single schedule data",
+                "operationId": "getScheduleById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Schedules"
+                ],
+                "summary": "Update existing schedule",
+                "description": "Updates a schedule record",
+                "operationId": "updateSchedule",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "course_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "lecturer_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "course_pic_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "day": {
+                                        "type": "string",
+                                        "example": "monday",
+                                        "enum": [
+                                            "monday",
+                                            "tuesday",
+                                            "wednesday",
+                                            "thursday",
+                                            "friday",
+                                            "saturday",
+                                            "sunday"
+                                        ]
+                                    },
+                                    "start_time": {
+                                        "type": "string",
+                                        "example": "07:00:00"
+                                    },
+                                    "end_time": {
+                                        "type": "string",
+                                        "example": "10:35:00"
+                                    },
+                                    "room": {
+                                        "type": "string",
+                                        "example": "RT-01 (Lab TI)"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Schedule updated successfully"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Schedules"
+                ],
+                "summary": "Delete schedule",
+                "description": "Deletes a schedule record",
+                "operationId": "deleteSchedule",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Schedule deleted successfully"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            }
+        },
+        "/api/semesters": {
+            "get": {
+                "tags": [
+                    "Semesters"
+                ],
+                "summary": "Get list of semesters",
+                "description": "Returns list of all semesters",
+                "operationId": "getSemestersList",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Semesters"
+                ],
+                "summary": "Create new semester",
+                "description": "Creates a new semester record",
+                "operationId": "storeSemester",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "2026/2027 Ganjil"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Semester created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/semesters/{id}": {
+            "get": {
+                "tags": [
+                    "Semesters"
+                ],
+                "summary": "Get semester by ID",
+                "description": "Returns single semester data",
+                "operationId": "getSemesterById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Semesters"
+                ],
+                "summary": "Update existing semester",
+                "description": "Updates a semester record",
+                "operationId": "updateSemester",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "2026/2027 Genap"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Semester updated successfully"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Semesters"
+                ],
+                "summary": "Delete semester",
+                "description": "Deletes a semester record",
+                "operationId": "deleteSemester",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Semester deleted successfully"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Semesters",
+            "description": "API Endpoints for managing Academic Semesters"
+        },
+        {
+            "name": "Lecturers",
+            "description": "API Endpoints for managing Lecturers"
+        },
+        {
+            "name": "Course PICs",
+            "description": "API Endpoints for managing Course PICs"
+        },
+        {
+            "name": "Courses",
+            "description": "API Endpoints for managing Courses"
+        },
+        {
+            "name": "Schedules",
+            "description": "API Endpoints for managing Academic Class Schedules"
+        },
+        {
+            "name": "Reminders",
+            "description": "API Endpoints for WhatsApp reminders and delivery logs"
+        }
+    ]
+}
