@@ -87,7 +87,7 @@ class ReminderService
                 // . "🏛️ Ruangan: {$room}\n"
                 . "📞 Nomor Dosen: {$lecturerPhone}\n\n"
                 . "Jangan lupa ya!\n\n"
-                . "— Pesan ini dikirim otomatis oleh Nara.";
+                . "— Pesan ini dikirim otomatis.";
 
             if ($dryRun) {
                 $results[] = [
@@ -190,7 +190,7 @@ class ReminderService
                 . "🔔 Pengingat: 1 jam lagi (pukul {$startTime} WIB) mata kuliah {$course->name} akan dimulai.\n"
                 . "Pastikan sudah mengabari {$lecturerSalutation} {$lecturerName} ({$lecturerPhone}) ya!\n\n"
                 // . "Semangat perkuliahannya! 🙌\n\n"
-                . "— Pesan ini dikirim otomatis oleh Nara.";
+                . "— Pesan ini dikirim otomatis.";
 
             if ($dryRun) {
                 $results[] = [

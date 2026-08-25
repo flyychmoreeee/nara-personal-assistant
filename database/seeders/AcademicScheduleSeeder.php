@@ -42,27 +42,32 @@ class AcademicScheduleSeeder extends Seeder
             [
                 'name' => 'Ria Lusiyani, S.Pd., M.A.',
                 'gender' => 'female',
-                'phone_number' => '081234560004',
+                'phone_number' => '082134810271',
+                // fix
             ],
             [
                 'name' => 'Astrifidha Rahma Amalia, S.Pd., M.Pd.',
                 'gender' => 'female',
-                'phone_number' => '081234560005',
+                'phone_number' => '085850273371',
+                // fix
             ],
             [
                 'name' => 'Adevian Fairuz Pratama, S.S.T, M.Eng.',
                 'gender' => 'male',
-                'phone_number' => '081234560006',
+                'phone_number' => '081333156702',
+                // fix
             ],
             [
                 'name' => 'Zulmy Faqihuddin Putera, S.Pd., M.Pd.',
                 'gender' => 'male',
-                'phone_number' => '081234560007',
+                'phone_number' => '082234463936',
+                // fix
             ],
             [
                 'name' => 'Retno Damayanti, S.Pd., M.T.',
                 'gender' => 'female',
-                'phone_number' => '081234560008',
+                'phone_number' => '081231661779',
+                // fix
             ],
         ];
 
