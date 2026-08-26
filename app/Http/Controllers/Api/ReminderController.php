@@ -71,6 +71,7 @@ class ReminderController extends Controller
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: 'dry_run', type: 'boolean', example: false),
+                    new OA\Property(property: 'ignore_holiday', type: 'boolean', example: false),
                     new OA\Property(
                         property: 'day',
                         type: 'string',
@@ -87,9 +88,10 @@ class ReminderController extends Controller
     public function triggerMorning(Request $request): JsonResponse
     {
         $dryRun = $request->boolean('dry_run', false);
+        $ignoreHoliday = $request->boolean('ignore_holiday', false);
         $day = $request->input('day');
 
-        $results = $this->reminderService->sendMorningReminders($dryRun, $day);
+        $results = $this->reminderService->sendMorningReminders($dryRun, $day, $ignoreHoliday);
 
         return response()->json([
             'success' => true,
@@ -110,6 +112,7 @@ class ReminderController extends Controller
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: 'dry_run', type: 'boolean', example: false),
+                    new OA\Property(property: 'ignore_holiday', type: 'boolean', example: false),
                 ]
             )
         ),
@@ -120,8 +123,9 @@ class ReminderController extends Controller
     public function triggerPreclass(Request $request): JsonResponse
     {
         $dryRun = $request->boolean('dry_run', false);
+        $ignoreHoliday = $request->boolean('ignore_holiday', false);
 
-        $results = $this->reminderService->sendPreclassReminders($dryRun);
+        $results = $this->reminderService->sendPreclassReminders($dryRun, $ignoreHoliday);
 
         return response()->json([
             'success' => true,

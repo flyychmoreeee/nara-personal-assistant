@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4af7f7f71e11d07b936db9ce1d0e57fa",
+    "content-hash": "0cec8214672ecc1bb11aefe4c6028bb3",
     "packages": [
         {
             "name": "brick/math",
@@ -2618,6 +2618,53 @@
                 }
             ],
             "time": "2026-02-16T23:10:27+00:00"
+        },
+        {
+            "name": "peace2643/indonesian-holidays",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/peace2643/indonesian-holidays.git",
+                "reference": "867bee0c905e5b2bdab4703e1356aa5316caf69b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/peace2643/indonesian-holidays/zipball/867bee0c905e5b2bdab4703e1356aa5316caf69b",
+                "reference": "867bee0c905e5b2bdab4703e1356aa5316caf69b",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.4"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "peace2643\\IndonesianHolidays\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Stanley Bruen",
+                    "email": "stanleybruen4@gmail.com"
+                }
+            ],
+            "description": "Simple package to check Indonesian public holidays",
+            "homepage": "https://github.com/peace2643/indonesian-holidays",
+            "keywords": [
+                "holidays",
+                "indonesia",
+                "libur nasional",
+                "tanggal merah"
+            ],
+            "support": {
+                "issues": "https://github.com/peace2643/indonesian-holidays/issues",
+                "source": "https://github.com/peace2643/indonesian-holidays/tree/v1.0.0"
+            },
+            "time": "2025-07-31T07:18:39+00:00"
         },
         {
             "name": "phpoption/phpoption",

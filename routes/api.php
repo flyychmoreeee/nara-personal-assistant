@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\CourseController;
 use App\Http\Controllers\Api\CoursePicController;
+use App\Http\Controllers\Api\HolidayController;
 use App\Http\Controllers\Api\LecturerController;
 use App\Http\Controllers\Api\ReminderController;
 use App\Http\Controllers\Api\ScheduleController;
@@ -30,6 +31,11 @@ Route::apiResource('course-pics', CoursePicController::class);
 Route::apiResource('courses', CourseController::class);
 Route::apiResource('schedules', ScheduleController::class);
 
+// Holidays Management
+Route::get('holidays/check', [HolidayController::class, 'check']);
+Route::post('holidays/sync', [HolidayController::class, 'sync']);
+Route::apiResource('holidays', HolidayController::class);
+
 // Reminders & WhatsApp Management
 Route::prefix('reminders')->group(function () {
     Route::post('/test-whatsapp', [ReminderController::class, 'testWhatsApp']);
@@ -37,3 +43,4 @@ Route::prefix('reminders')->group(function () {
     Route::post('/trigger-preclass', [ReminderController::class, 'triggerPreclass']);
     Route::get('/logs', [ReminderController::class, 'logs']);
 });
+

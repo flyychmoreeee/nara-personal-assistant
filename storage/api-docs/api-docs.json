@@ -377,6 +377,288 @@
                 }
             }
         },
+        "/api/holidays": {
+            "get": {
+                "tags": [
+                    "Holidays"
+                ],
+                "summary": "Get list of holidays",
+                "description": "Returns list of all holidays with optional filters",
+                "operationId": "getHolidaysList",
+                "parameters": [
+                    {
+                        "name": "year",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 2026
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "national",
+                                "academic",
+                                "custom"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Holidays"
+                ],
+                "summary": "Create new holiday or holiday range",
+                "description": "Create a single-day holiday or a bulk date-range holiday (e.g. semester break)",
+                "operationId": "storeHoliday",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "start_date"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Libur Perpindahan Semester Ganjil"
+                                    },
+                                    "start_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-07-01"
+                                    },
+                                    "end_date": {
+                                        "description": "Defaults to start_date if omitted",
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-08-31"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "example": "academic",
+                                        "enum": [
+                                            "national",
+                                            "academic",
+                                            "custom"
+                                        ]
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Libur semester genap ke ganjil"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Holiday created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/holidays/check": {
+            "get": {
+                "tags": [
+                    "Holidays"
+                ],
+                "summary": "Check if today or specific date is a holiday",
+                "description": "Checks whether a date is within an active holiday",
+                "operationId": "checkHoliday",
+                "parameters": [
+                    {
+                        "name": "date",
+                        "in": "query",
+                        "description": "Date in Y-m-d format. Defaults to today.",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2026-08-25"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful check"
+                    }
+                }
+            }
+        },
+        "/api/holidays/sync": {
+            "post": {
+                "tags": [
+                    "Holidays"
+                ],
+                "summary": "Sync Indonesian national holidays",
+                "description": "Fetch and save national holidays from public API / package into database",
+                "operationId": "syncNationalHolidays",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "year": {
+                                        "type": "integer",
+                                        "example": 2026
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Holidays synced successfully"
+                    }
+                }
+            }
+        },
+        "/api/holidays/{id}": {
+            "get": {
+                "tags": [
+                    "Holidays"
+                ],
+                "summary": "Get holiday by ID",
+                "operationId": "getHolidayById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Holiday not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Holidays"
+                ],
+                "summary": "Update holiday",
+                "operationId": "updateHoliday",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Libur Diperpanjang"
+                                    },
+                                    "start_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-07-01"
+                                    },
+                                    "end_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-09-07"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "national",
+                                            "academic",
+                                            "custom"
+                                        ]
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Holiday updated successfully"
+                    },
+                    "404": {
+                        "description": "Holiday not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Holidays"
+                ],
+                "summary": "Delete holiday",
+                "operationId": "deleteHoliday",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Holiday deleted successfully"
+                    },
+                    "404": {
+                        "description": "Holiday not found"
+                    }
+                }
+            }
+        },
         "/api/lecturers": {
             "get": {
                 "tags": [
@@ -607,6 +889,10 @@
                                         "type": "boolean",
                                         "example": false
                                     },
+                                    "ignore_holiday": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
                                     "day": {
                                         "type": "string",
                                         "example": "monday",
@@ -648,6 +934,10 @@
                             "schema": {
                                 "properties": {
                                     "dry_run": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "ignore_holiday": {
                                         "type": "boolean",
                                         "example": false
                                     }
@@ -1153,6 +1443,10 @@
         {
             "name": "Reminders",
             "description": "API Endpoints for WhatsApp reminders and delivery logs"
+        },
+        {
+            "name": "Holidays",
+            "description": "Holidays"
         }
     ]
 }

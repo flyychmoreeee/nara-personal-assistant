@@ -14,3 +14,7 @@ Schedule::command('app:send-morning-reminders')
 Schedule::command('app:send-preclass-reminders')
     ->everyMinute();
 
+Schedule::command('app:sync-holidays')
+    ->monthly();
+
+

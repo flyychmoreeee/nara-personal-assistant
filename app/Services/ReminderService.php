@@ -11,19 +11,28 @@ use Illuminate\Support\Facades\Log;
 class ReminderService
 {
     protected FonnteService $fonnte;
+    protected HolidayService $holidayService;
 
-    public function __construct(FonnteService $fonnte)
+    public function __construct(FonnteService $fonnte, HolidayService $holidayService)
     {
         $this->fonnte = $fonnte;
+        $this->holidayService = $holidayService;
     }
 
     /**
      * Send morning reminder to all course PICs whose courses are scheduled today
      */
-    public function sendMorningReminders(bool $dryRun = false, ?string $customDay = null): array
+    public function sendMorningReminders(bool $dryRun = false, ?string $customDay = null, bool $ignoreHoliday = false): array
     {
         $todayName = $customDay ? strtolower($customDay) : strtolower(now()->format('l'));
         $todayDate = now()->toDateString();
+
+        if (!$ignoreHoliday && $this->holidayService->isHoliday($todayDate)) {
+            $holiday = $this->holidayService->getHoliday($todayDate);
+            $holidayName = $holiday ? $holiday->name : 'Hari Libur';
+            Log::info("Morning reminders skipped: Today ({$todayDate}) is a holiday ({$holidayName}).");
+            return [];
+        }
 
         $activeSemester = Semester::where('is_active', true)->first();
 
@@ -129,11 +138,18 @@ class ReminderService
     /**
      * Send pre-class reminder (approx 1 hour before class starts)
      */
-    public function sendPreclassReminders(bool $dryRun = false): array
+    public function sendPreclassReminders(bool $dryRun = false, bool $ignoreHoliday = false): array
     {
         $todayName = strtolower(now()->format('l'));
         $todayDate = now()->toDateString();
         $currentTime = Carbon::now();
+
+        if (!$ignoreHoliday && $this->holidayService->isHoliday($todayDate)) {
+            $holiday = $this->holidayService->getHoliday($todayDate);
+            $holidayName = $holiday ? $holiday->name : 'Hari Libur';
+            Log::info("Pre-class reminders skipped: Today ({$todayDate}) is a holiday ({$holidayName}).");
+            return [];
+        }
 
         $activeSemester = Semester::where('is_active', true)->first();
 
