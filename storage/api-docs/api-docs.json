@@ -1417,6 +1417,293 @@
                     }
                 }
             }
+        },
+        "/api/tasks": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Get list of tasks",
+                "description": "Returns list of tasks with course information. Filterable by course_id and status (completed/pending)",
+                "operationId": "getTasksList",
+                "parameters": [
+                    {
+                        "name": "course_id",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "is_completed",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "completed",
+                                "all"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Create new task",
+                "description": "Creates a new task assignment for a course",
+                "operationId": "storeTask",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "course_id",
+                                    "title"
+                                ],
+                                "properties": {
+                                    "course_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "title": {
+                                        "type": "string",
+                                        "example": "PR untuk tugas 1"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Kerjakan hal 45-50 di buku cetak"
+                                    },
+                                    "due_date": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2026-09-05 23:59:00"
+                                    },
+                                    "is_completed": {
+                                        "type": "boolean",
+                                        "example": false
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Task created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/tasks/{id}": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Get task by ID",
+                "description": "Returns single task data with course",
+                "operationId": "getTaskById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Update existing task",
+                "description": "Updates a task record",
+                "operationId": "updateTask",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "course_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "title": {
+                                        "type": "string",
+                                        "example": "PR untuk tugas 1"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Kerjakan hal 45-50 di buku cetak"
+                                    },
+                                    "due_date": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2026-09-05 23:59:00"
+                                    },
+                                    "is_completed": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Task updated successfully"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Delete task",
+                "description": "Deletes a task record",
+                "operationId": "deleteTask",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Task deleted successfully"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            }
+        },
+        "/api/tasks/{id}/toggle-complete": {
+            "patch": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Toggle task completed status",
+                "description": "Toggles between completed and incomplete status",
+                "operationId": "toggleTaskComplete",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status updated successfully"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            }
+        },
+        "/api/webhook/fonnte": {
+            "post": {
+                "tags": [
+                    "WhatsApp"
+                ],
+                "summary": "Handle incoming WhatsApp webhook from Fonnte",
+                "description": "Processes incoming messages, evaluates bot commands (!tugas, !jadwal, !dosen, !help), and responds accordingly",
+                "operationId": "handleFonnteWebhook",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "sender": {
+                                        "type": "string",
+                                        "example": "120363028123456789@g.us"
+                                    },
+                                    "message": {
+                                        "type": "string",
+                                        "example": "!tugas"
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Ahmad"
+                                    },
+                                    "member": {
+                                        "type": "string",
+                                        "example": "6281234567890"
+                                    },
+                                    "device": {
+                                        "type": "string",
+                                        "example": "628999999999"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Webhook processed"
+                    }
+                }
+            }
         }
     },
     "tags": [
@@ -1447,6 +1734,14 @@
         {
             "name": "Holidays",
             "description": "Holidays"
+        },
+        {
+            "name": "Tasks",
+            "description": "Tasks"
+        },
+        {
+            "name": "WhatsApp",
+            "description": "WhatsApp"
         }
     ]
 }

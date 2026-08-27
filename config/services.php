@@ -38,6 +38,9 @@ return [
     'fonnte' => [
         'token' => env('FONNTE_TOKEN'),
         'url' => env('FONNTE_URL', 'https://api.fonnte.com/send'),
+        'allowed_group_id' => env('FONNTE_ALLOWED_GROUP_ID'),
+        'daily_command_limit' => env('WHATSAPP_COMMAND_DAILY_LIMIT', 10),
     ],
 
 ];
+

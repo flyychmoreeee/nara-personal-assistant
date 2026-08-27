@@ -21,6 +21,12 @@ class FonnteService
      */
     public function formatPhoneNumber(string $phone): string
     {
+        $phone = trim($phone);
+
+        if (str_contains($phone, '@g.us')) {
+            return $phone;
+        }
+
         $cleaned = preg_replace('/[^0-9]/', '', $phone);
 
         if (str_starts_with($cleaned, '08')) {

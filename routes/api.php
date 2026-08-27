@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\LecturerController;
 use App\Http\Controllers\Api\ReminderController;
 use App\Http\Controllers\Api\ScheduleController;
 use App\Http\Controllers\Api\SemesterController;
+use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\Api\WhatsAppWebhookController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -31,6 +33,10 @@ Route::apiResource('course-pics', CoursePicController::class);
 Route::apiResource('courses', CourseController::class);
 Route::apiResource('schedules', ScheduleController::class);
 
+// Task Management CRUD
+Route::patch('tasks/{id}/toggle-complete', [TaskController::class, 'toggleComplete']);
+Route::apiResource('tasks', TaskController::class);
+
 // Holidays Management
 Route::get('holidays/check', [HolidayController::class, 'check']);
 Route::post('holidays/sync', [HolidayController::class, 'sync']);
@@ -43,4 +49,9 @@ Route::prefix('reminders')->group(function () {
     Route::post('/trigger-preclass', [ReminderController::class, 'triggerPreclass']);
     Route::get('/logs', [ReminderController::class, 'logs']);
 });
+
+// WhatsApp Webhook (Fonnte - supports GET & POST)
+Route::match(['get', 'post'], 'webhook/fonnte', [WhatsAppWebhookController::class, 'handle']);
+
+
 
