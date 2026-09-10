@@ -71,6 +71,19 @@ class AcademicReminderApiTest extends TestCase
             ->assertJsonPath('total', 2);
     }
 
+    public function test_trigger_d_minus_one_reminder_dry_run(): void
+    {
+        $response = $this->postJson('/api/reminders/trigger-d-minus-one', [
+            'dry_run' => true,
+            'day' => 'tuesday',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('total', 3)
+            ->assertJsonPath('data.0.status', 'dry_run');
+    }
+
     public function test_swagger_documentation_endpoint(): void
     {
         $response = $this->get('/api/documentation');

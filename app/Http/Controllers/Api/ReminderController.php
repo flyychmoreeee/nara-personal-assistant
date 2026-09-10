@@ -61,6 +61,47 @@ class ReminderController extends Controller
     }
 
     #[OA\Post(
+        path: '/api/reminders/trigger-d-minus-one',
+        operationId: 'triggerDMinusOneReminder',
+        tags: ['Reminders'],
+        summary: 'Manually trigger H-1 Afternoon Reminders (16:00 WIB)',
+        description: 'Triggers the 16:00 WIB afternoon reminder for tomorrow\'s classes (or a specific overridden day)',
+        requestBody: new OA\RequestBody(
+            required: false,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'dry_run', type: 'boolean', example: false),
+                    new OA\Property(property: 'ignore_holiday', type: 'boolean', example: false),
+                    new OA\Property(
+                        property: 'day',
+                        type: 'string',
+                        enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+                        example: 'tuesday'
+                    ),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'H-1 Reminders triggered')
+        ]
+    )]
+    public function triggerDMinusOne(Request $request): JsonResponse
+    {
+        $dryRun = $request->boolean('dry_run', false);
+        $ignoreHoliday = $request->boolean('ignore_holiday', false);
+        $day = $request->input('day');
+
+        $results = $this->reminderService->sendDMinusOneReminders($dryRun, $day, $ignoreHoliday);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'H-1 afternoon reminders processed',
+            'total' => count($results),
+            'data' => $results,
+        ]);
+    }
+
+    #[OA\Post(
         path: '/api/reminders/trigger-morning',
         operationId: 'triggerMorningReminder',
         tags: ['Reminders'],

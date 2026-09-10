@@ -45,6 +45,7 @@ Route::apiResource('holidays', HolidayController::class);
 // Reminders & WhatsApp Management
 Route::prefix('reminders')->group(function () {
     Route::post('/test-whatsapp', [ReminderController::class, 'testWhatsApp']);
+    Route::post('/trigger-d-minus-one', [ReminderController::class, 'triggerDMinusOne']);
     Route::post('/trigger-morning', [ReminderController::class, 'triggerMorning']);
     Route::post('/trigger-preclass', [ReminderController::class, 'triggerPreclass']);
     Route::get('/logs', [ReminderController::class, 'logs']);
