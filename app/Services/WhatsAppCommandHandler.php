@@ -14,11 +14,16 @@ class WhatsAppCommandHandler
 {
     protected FonnteService $fonnte;
     protected HolidayService $holidayService;
+    protected ReminderService $reminderService;
 
-    public function __construct(FonnteService $fonnte, HolidayService $holidayService)
-    {
+    public function __construct(
+        FonnteService $fonnte,
+        HolidayService $holidayService,
+        ReminderService $reminderService
+    ) {
         $this->fonnte = $fonnte;
         $this->holidayService = $holidayService;
+        $this->reminderService = $reminderService;
     }
 
     /**
@@ -141,36 +146,7 @@ class WhatsAppCommandHandler
 
         $tasks = $query->orderBy('due_date', 'asc')->get();
 
-        if ($tasks->isEmpty()) {
-            return "🎉 *TIDAK ADA TUGAS*\n\n"
-                . "Yeay!, saat ini belum ada tugas/PR yang tercatat aktif! Tetap semangat ya!";
-        }
-
-        $message = "📝*Daftar tugas kelas 1E-SIB*\n";
-
-        $grouped = $tasks->groupBy(function ($task) {
-            return $task->course ? $task->course->name : 'Lainnya';
-        });
-
-        foreach ($grouped as $courseName => $courseTasks) {
-            $message .= "\n📚*{$courseName}*\n";
-
-            $taskIndex = 1;
-            foreach ($courseTasks as $task) {
-                $description = $task->description ?: '-';
-                $deadline = $task->due_date
-                    ? Carbon::parse($task->due_date)->locale('id')->translatedFormat('d M Y, H:i') . ' WIB'
-                    : '-';
-
-                $message .= "{$taskIndex}. Judul: {$task->title}\n"
-                    . "    Deskripsi: {$description}\n"
-                    . "    Deadline: {$deadline}\n";
-
-                $taskIndex++;
-            }
-        }
-
-        return trim($message);
+        return $this->reminderService->formatTasksListMessage($tasks, false);
     }
 
     /**
@@ -214,7 +190,7 @@ class WhatsAppCommandHandler
         }
 
         $targetTitle = $dayTarget === 'tomorrow' ? 'Besok' : 'Hari Ini';
-        $message = "🗓️*Jadwal kuliah {$targetTitle}*\n📅 {$formattedDate}\n\n";
+        $message = "🗓️ *Jadwal kuliah {$targetTitle}*\n📅 {$formattedDate}\n\n";
 
         $num = 1;
         foreach ($schedules as $schedule) {
@@ -228,9 +204,9 @@ class WhatsAppCommandHandler
             $picName = $pic ? "{$pic->name}" : '-';
 
             $message .= "{$num}. *{$course->name}*\n"
-                . "    Pukul: {$startTime} - {$endTime} WIB\n"
-                . "    Dosen: {$lecturerName}\n"
-                . "    PJ: {$picName}\n\n";
+                . "   • *Pukul:* {$startTime} - {$endTime} WIB\n"
+                . "   • *Dosen:* {$lecturerName}\n"
+                . "   • *PJ:* {$picName}\n\n";
 
             $num++;
         }
@@ -257,7 +233,7 @@ class WhatsAppCommandHandler
             return "Belum ada data mata kuliah dan dosen yang terdaftar.";
         }
 
-        $message = "👨‍🏫*Daftar Dosen & PJ Mata Kuliah*\n\n";
+        $message = "👨‍🏫 *Daftar Dosen & PJ Mata Kuliah*\n\n";
 
         $num = 1;
         foreach ($courses as $course) {
@@ -274,8 +250,8 @@ class WhatsAppCommandHandler
                 : '-';
 
             $message .= "{$num}. *{$course->name}*\n"
-                . "    Dosen: {$lecturerInfo}\n"
-                . "    PJ: {$picInfo}\n\n";
+                . "   • *Dosen:* {$lecturerInfo}\n"
+                . "   • *PJ:* {$picInfo}\n\n";
 
             $num++;
         }

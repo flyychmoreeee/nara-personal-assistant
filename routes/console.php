@@ -26,4 +26,8 @@ Schedule::command('app:send-preclass-reminders')
 Schedule::command('app:sync-holidays')
     ->monthly();
 
+// Daily task reminder at 18:00 WIB
+Schedule::command('app:send-daily-task-reminders')
+    ->dailyAt('18:00');
+
 

@@ -48,6 +48,7 @@ Route::prefix('reminders')->group(function () {
     Route::post('/trigger-d-minus-one', [ReminderController::class, 'triggerDMinusOne']);
     Route::post('/trigger-morning', [ReminderController::class, 'triggerMorning']);
     Route::post('/trigger-preclass', [ReminderController::class, 'triggerPreclass']);
+    Route::post('/trigger-daily-tasks', [ReminderController::class, 'triggerDailyTasks']);
     Route::get('/logs', [ReminderController::class, 'logs']);
 });
 

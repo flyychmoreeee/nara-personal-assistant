@@ -180,4 +180,60 @@ class TaskAndWhatsAppCommandTest extends TestCase
         $r3->assertJsonPath('data.handled', true)
             ->assertJsonPath('data.status', 'rate_limited');
     }
+
+    public function test_daily_task_reminder_command_dry_run(): void
+    {
+        $this->artisan('app:send-daily-task-reminders', ['--dry-run' => true])
+            ->assertSuccessful();
+    }
+
+    public function test_daily_task_reminder_sends_to_group(): void
+    {
+        $group = '120363daily@g.us';
+        Config::set('services.fonnte.allowed_group_id', $group);
+
+        $course = Course::first();
+        Task::create([
+            'course_id' => $course->id,
+            'title' => 'Tugas Algoritma',
+            'description' => 'Kerjakan modul 4',
+            'due_date' => now()->addDays(1),
+            'is_completed' => false,
+        ]);
+
+        $this->mock(FonnteService::class, function (MockInterface $mock) use ($group) {
+            $mock->shouldReceive('sendMessage')
+                ->once()
+                ->withArgs(function ($target, $message) use ($group) {
+                    return $target === $group
+                        && str_contains($message, 'REMINDER TUGAS KELAS 1E-SIB')
+                        && str_contains($message, 'Tugas Algoritma');
+                })
+                ->andReturn([
+                    'success' => true,
+                    'status' => 'sent',
+                    'message' => 'Sent',
+                ]);
+        });
+
+        $this->artisan('app:send-daily-task-reminders', ['--force' => true])
+            ->assertSuccessful();
+
+        $this->assertDatabaseHas('reminder_logs', [
+            'type' => 'daily_task',
+            'target_phone' => $group,
+            'status' => 'sent',
+        ]);
+    }
+
+    public function test_trigger_daily_tasks_api(): void
+    {
+        $response = $this->postJson('/api/reminders/trigger-daily-tasks', [
+            'dry_run' => true,
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.status', 'dry_run');
+    }
 }

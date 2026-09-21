@@ -176,6 +176,43 @@ class ReminderController extends Controller
         ]);
     }
 
+    #[OA\Post(
+        path: '/api/reminders/trigger-daily-tasks',
+        operationId: 'triggerDailyTasksReminder',
+        tags: ['Reminders'],
+        summary: 'Manually trigger Daily Task Reminder (18:00 WIB)',
+        description: 'Triggers the daily task reminder to the class WhatsApp group',
+        requestBody: new OA\RequestBody(
+            required: false,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'dry_run', type: 'boolean', example: false),
+                    new OA\Property(property: 'group', type: 'string', example: '120363028123456789@g.us'),
+                    new OA\Property(property: 'force', type: 'boolean', example: false),
+                    new OA\Property(property: 'skip_empty', type: 'boolean', example: false),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Daily task reminder processed')
+        ]
+    )]
+    public function triggerDailyTasks(Request $request): JsonResponse
+    {
+        $dryRun = $request->boolean('dry_run', false);
+        $group = $request->input('group');
+        $force = $request->boolean('force', false);
+        $skipEmpty = $request->boolean('skip_empty', false);
+
+        $result = $this->reminderService->sendDailyTaskReminder($dryRun, $group, $force, $skipEmpty);
+
+        return response()->json([
+            'success' => ($result['status'] ?? '') !== 'failed',
+            'message' => 'Daily task reminder processed',
+            'data' => $result,
+        ]);
+    }
+
     #[OA\Get(
         path: '/api/reminders/logs',
         operationId: 'getReminderLogs',
@@ -183,7 +220,7 @@ class ReminderController extends Controller
         summary: 'Get reminder delivery logs',
         description: 'Returns delivery history and status of automated WhatsApp reminders',
         parameters: [
-            new OA\Parameter(name: 'type', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['morning', 'pre_class'])),
+            new OA\Parameter(name: 'type', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['morning', 'pre_class', 'd_minus_1', 'daily_task'])),
             new OA\Parameter(name: 'status', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['sent', 'failed', 'pending'])),
             new OA\Parameter(name: 'date', in: 'query', required: false, schema: new OA\Schema(type: 'string', format: 'date'))
         ],

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\ReminderLog;
 use App\Models\Schedule;
 use App\Models\Semester;
+use App\Models\Task;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -381,5 +382,172 @@ class ReminderService
         }
 
         return $results;
+    }
+
+    /**
+     * Format list of tasks into neat WhatsApp markdown message
+     */
+    public function formatTasksListMessage($tasks, bool $isReminder = false): string
+    {
+        if ($tasks->isEmpty()) {
+            return "🎉 *TIDAK ADA TUGAS*\n\n"
+                . "Yeay!, saat ini belum ada tugas/PR yang tercatat aktif! Tetap semangat ya!";
+        }
+
+        $todayDateStr = Carbon::now()->locale('id')->translatedFormat('l, d F Y');
+
+        $headerTitle = $isReminder ? 'REMINDER TUGAS KELAS 1E-SIB' : 'Daftar tugas kelas 1E-SIB';
+        $subHeader = $isReminder ? "⏰ _Pengingat Otomatis Harian (Pukul 18:00 WIB)_\n" : "";
+
+        $message = "📋 *{$headerTitle}*\n"
+            . $subHeader
+            . "📅 _{$todayDateStr}_\n"
+            . "━━━━━━━━━━━━━━━━━━━━\n";
+
+        $grouped = $tasks->groupBy(function ($task) {
+            return $task->course ? $task->course->name : 'Lainnya';
+        });
+
+        $courseIndex = 0;
+        foreach ($grouped as $courseName => $courseTasks) {
+            if ($courseIndex > 0) {
+                $message .= "\n────────────────────\n";
+            }
+
+            $message .= "\n📚 *{$courseName}*\n";
+
+            $taskIndex = 1;
+            foreach ($courseTasks as $task) {
+                $description = trim($task->description ?? '');
+
+                $deadlineStr = '-';
+                $statusBadge = '';
+                if ($task->due_date) {
+                    $dueDate = Carbon::parse($task->due_date);
+                    $deadlineStr = $dueDate->locale('id')->translatedFormat('d M Y, H:i') . ' WIB';
+
+                    $now = Carbon::now();
+                    if ($dueDate->isPast()) {
+                        $statusBadge = ' ⚠️ _(Lewat)_';
+                    } elseif ($dueDate->isToday()) {
+                        $statusBadge = ' 🔥 _(Hari Ini!)_';
+                    } elseif ($dueDate->isTomorrow()) {
+                        $statusBadge = ' ⏳ _(Besok)_';
+                    } else {
+                        $diffInDays = (int) ceil($now->diffInDays($dueDate, false));
+                        if ($diffInDays > 0 && $diffInDays <= 7) {
+                            $statusBadge = " 🗓️ _({$diffInDays} hari lagi)_";
+                        }
+                    }
+                }
+
+                $message .= "\n{$taskIndex}. *{$task->title}*\n"
+                    . "   • *Deadline:* {$deadlineStr}{$statusBadge}\n";
+
+                if (!empty($description) && $description !== '-') {
+                    $message .= "   • *Deskripsi:* {$description}\n";
+                }
+
+                $taskIndex++;
+            }
+
+            $courseIndex++;
+        }
+
+        $message .= "\n━━━━━━━━━━━━━━━━━━━━\n"
+            . "💡 _Yuk cicil tugasnya dari sekarang biar tidak menumpuk!_";
+
+        return trim($message);
+    }
+
+    /**
+     * Send daily task reminder (at 18:00 WIB) to the class WhatsApp group
+     */
+    public function sendDailyTaskReminder(bool $dryRun = false, ?string $targetGroup = null, bool $force = false, bool $skipIfEmpty = false): array
+    {
+        $group = $targetGroup ?: config('services.fonnte.allowed_group_id');
+
+        if (empty($group)) {
+            Log::warning('Daily task reminder skipped: No WhatsApp group configured in services.fonnte.allowed_group_id');
+            return [
+                'status' => 'skipped',
+                'reason' => 'No WhatsApp group ID configured',
+            ];
+        }
+
+        $todayDate = now()->toDateString();
+
+        // Check if already sent today (unless forced or in dry run)
+        if (!$force && !$dryRun) {
+            $alreadySent = ReminderLog::where('type', 'daily_task')
+                ->where('reminder_date', $todayDate)
+                ->where('status', 'sent')
+                ->exists();
+
+            if ($alreadySent) {
+                Log::info("Daily task reminder skipped: Already sent for date {$todayDate}");
+                return [
+                    'status' => 'skipped',
+                    'group' => $group,
+                    'reason' => 'Already sent today',
+                ];
+            }
+        }
+
+        $activeSemester = Semester::where('is_active', true)->first();
+
+        $query = Task::pending()->with(['course']);
+
+        if ($activeSemester) {
+            $query->whereHas('course', function ($q) use ($activeSemester) {
+                $q->where('semester_id', $activeSemester->id);
+            });
+        }
+
+        $tasks = $query->orderBy('due_date', 'asc')->get();
+
+        if ($tasks->isEmpty() && $skipIfEmpty) {
+            Log::info("Daily task reminder skipped: No pending tasks and skipIfEmpty is true.");
+            return [
+                'status' => 'skipped',
+                'group' => $group,
+                'reason' => 'No pending tasks to remind',
+            ];
+        }
+
+        $message = $this->formatTasksListMessage($tasks, true);
+
+        if ($dryRun) {
+            return [
+                'status' => 'dry_run',
+                'group' => $group,
+                'target_date' => $todayDate,
+                'task_count' => $tasks->count(),
+                'message' => $message,
+            ];
+        }
+
+        $sendResult = $this->fonnte->sendMessage($group, $message);
+        $status = ($sendResult['status'] ?? '') === 'sent' ? 'sent' : 'failed';
+
+        ReminderLog::create([
+            'schedule_id' => null,
+            'type' => 'daily_task',
+            'reminder_date' => $todayDate,
+            'target_phone' => $group,
+            'status' => $status,
+            'message' => $message,
+            'response_payload' => $sendResult['data'] ?? ['error' => $sendResult['message'] ?? 'Unknown error'],
+            'sent_at' => $status === 'sent' ? now() : null,
+        ]);
+
+        return [
+            'status' => $status,
+            'group' => $group,
+            'target_date' => $todayDate,
+            'task_count' => $tasks->count(),
+            'message' => $message,
+            'response' => $sendResult,
+        ];
     }
 }
