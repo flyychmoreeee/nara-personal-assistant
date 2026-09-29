@@ -3,10 +3,14 @@
 use App\Http\Controllers\Api\CourseController;
 use App\Http\Controllers\Api\CoursePicController;
 use App\Http\Controllers\Api\HolidayController;
+use App\Http\Controllers\Api\KasExpenseController;
+use App\Http\Controllers\Api\KasPaymentController;
+use App\Http\Controllers\Api\KasWeekController;
 use App\Http\Controllers\Api\LecturerController;
 use App\Http\Controllers\Api\ReminderController;
 use App\Http\Controllers\Api\ScheduleController;
 use App\Http\Controllers\Api\SemesterController;
+use App\Http\Controllers\Api\StudentController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\WhatsAppWebhookController;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +36,7 @@ Route::apiResource('lecturers', LecturerController::class);
 Route::apiResource('course-pics', CoursePicController::class);
 Route::apiResource('courses', CourseController::class);
 Route::apiResource('schedules', ScheduleController::class);
+Route::apiResource('students', StudentController::class);
 
 // Task Management CRUD
 Route::patch('tasks/{id}/toggle-complete', [TaskController::class, 'toggleComplete']);
@@ -41,6 +46,16 @@ Route::apiResource('tasks', TaskController::class);
 Route::get('holidays/check', [HolidayController::class, 'check']);
 Route::post('holidays/sync', [HolidayController::class, 'sync']);
 Route::apiResource('holidays', HolidayController::class);
+
+// Kas Kelas Management
+Route::prefix('kas')->group(function () {
+    Route::get('/overview', [KasPaymentController::class, 'overview']);
+    Route::get('/matrix', [KasPaymentController::class, 'matrix']);
+    Route::post('/toggle-payment', [KasPaymentController::class, 'togglePayment']);
+    Route::get('/weeks/{weekId}/students', [KasPaymentController::class, 'weekStudents']);
+    Route::apiResource('weeks', KasWeekController::class);
+    Route::apiResource('expenses', KasExpenseController::class);
+});
 
 // Reminders & WhatsApp Management
 Route::prefix('reminders')->group(function () {

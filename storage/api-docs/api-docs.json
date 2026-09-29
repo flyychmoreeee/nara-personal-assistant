@@ -659,6 +659,639 @@
                 }
             }
         },
+        "/api/kas/expenses": {
+            "get": {
+                "tags": [
+                    "Kas - Expenses"
+                ],
+                "summary": "Get list of kas expenses",
+                "description": "Returns paginated list of kas expenses ordered by expense date",
+                "operationId": "getKasExpensesList",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "year",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "month",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Kas - Expenses"
+                ],
+                "summary": "Create new kas expense",
+                "description": "Creates a new class treasury expense record",
+                "operationId": "storeKasExpense",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title",
+                                    "amount",
+                                    "expense_date"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Beli spidol & penghapus papan tulis"
+                                    },
+                                    "amount": {
+                                        "type": "integer",
+                                        "example": 25000
+                                    },
+                                    "expense_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-09-15"
+                                    },
+                                    "receipt_image": {
+                                        "type": "string",
+                                        "example": "https://example.com/nota.jpg",
+                                        "nullable": true
+                                    },
+                                    "notes": {
+                                        "type": "string",
+                                        "example": "Beli di fotokopi depan kampus",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Expense created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/kas/expenses/{id}": {
+            "get": {
+                "tags": [
+                    "Kas - Expenses"
+                ],
+                "summary": "Get kas expense by ID",
+                "description": "Returns single kas expense detail",
+                "operationId": "getKasExpenseById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Expense not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Kas - Expenses"
+                ],
+                "summary": "Update kas expense",
+                "description": "Updates an existing expense record",
+                "operationId": "updateKasExpense",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Beli spidol & penghapus papan tulis"
+                                    },
+                                    "amount": {
+                                        "type": "integer",
+                                        "example": 25000
+                                    },
+                                    "expense_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-09-15"
+                                    },
+                                    "receipt_image": {
+                                        "type": "string",
+                                        "example": "https://example.com/nota.jpg",
+                                        "nullable": true
+                                    },
+                                    "notes": {
+                                        "type": "string",
+                                        "example": "Beli di fotokopi depan kampus",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Expense updated successfully"
+                    },
+                    "404": {
+                        "description": "Expense not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Kas - Expenses"
+                ],
+                "summary": "Delete kas expense",
+                "description": "Deletes a kas expense record",
+                "operationId": "deleteKasExpense",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Expense deleted successfully"
+                    },
+                    "404": {
+                        "description": "Expense not found"
+                    }
+                }
+            }
+        },
+        "/api/kas/toggle-payment": {
+            "post": {
+                "tags": [
+                    "Kas - Payments"
+                ],
+                "summary": "One-Tap Toggle Payment Status",
+                "description": "Toggles a student payment status between paid and unpaid for a specific week",
+                "operationId": "toggleKasPayment",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "student_id",
+                                    "kas_week_id"
+                                ],
+                                "properties": {
+                                    "student_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "kas_week_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "notes": {
+                                        "type": "string",
+                                        "example": "Bayar tunai"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Payment status updated successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/kas/weeks/{weekId}/students": {
+            "get": {
+                "tags": [
+                    "Kas - Payments"
+                ],
+                "summary": "Get students checklist for a week",
+                "description": "Returns all active students with their payment status for treasurer one-tap interface",
+                "operationId": "getWeekStudentsPaymentStatus",
+                "parameters": [
+                    {
+                        "name": "weekId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Week not found"
+                    }
+                }
+            }
+        },
+        "/api/kas/overview": {
+            "get": {
+                "tags": [
+                    "Kas - Reports"
+                ],
+                "summary": "Get kas financial overview & summary",
+                "description": "Returns total balance, total income, total expenses, active week, and recent activity",
+                "operationId": "getKasOverview",
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            }
+        },
+        "/api/kas/matrix": {
+            "get": {
+                "tags": [
+                    "Kas - Reports"
+                ],
+                "summary": "Get multi-week student payment matrix",
+                "description": "Returns all students with their payment status across recent weeks (for public transparency table)",
+                "operationId": "getKasMatrix",
+                "parameters": [
+                    {
+                        "name": "month",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "year",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "limit_weeks",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 8
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            }
+        },
+        "/api/kas/weeks": {
+            "get": {
+                "tags": [
+                    "Kas - Weeks"
+                ],
+                "summary": "Get list of kas weeks",
+                "description": "Returns list of kas weeks with payment counts and total collected",
+                "operationId": "getKasWeeksList",
+                "parameters": [
+                    {
+                        "name": "year",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "month",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Kas - Weeks"
+                ],
+                "summary": "Create new kas week or incidental due",
+                "description": "Creates a new kas week period or incidental due (e.g. lomba, kegiatan)",
+                "operationId": "storeKasWeek",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Minggu 1 - September 2026"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "example": "routine",
+                                        "enum": [
+                                            "routine",
+                                            "incidental"
+                                        ]
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Iuran pendaftaran lomba futsal"
+                                    },
+                                    "week": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "month": {
+                                        "type": "integer",
+                                        "example": 9
+                                    },
+                                    "year": {
+                                        "type": "integer",
+                                        "example": 2026
+                                    },
+                                    "amount": {
+                                        "type": "integer",
+                                        "example": 5000
+                                    },
+                                    "start_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-09-01"
+                                    },
+                                    "end_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-09-07"
+                                    },
+                                    "due_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-09-15"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Kas week created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/kas/weeks/{id}": {
+            "get": {
+                "tags": [
+                    "Kas - Weeks"
+                ],
+                "summary": "Get kas week by ID",
+                "description": "Returns single kas week record",
+                "operationId": "getKasWeekById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Kas - Weeks"
+                ],
+                "summary": "Update existing kas week",
+                "description": "Updates a kas week record",
+                "operationId": "updateKasWeek",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Minggu 1 - September 2026"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "example": "routine",
+                                        "enum": [
+                                            "routine",
+                                            "incidental"
+                                        ]
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Iuran lomba"
+                                    },
+                                    "week": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "month": {
+                                        "type": "integer",
+                                        "example": 9
+                                    },
+                                    "year": {
+                                        "type": "integer",
+                                        "example": 2026
+                                    },
+                                    "amount": {
+                                        "type": "integer",
+                                        "example": 5000
+                                    },
+                                    "start_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-09-01"
+                                    },
+                                    "end_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-09-07"
+                                    },
+                                    "due_date": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-09-15"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Kas week updated successfully"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Kas - Weeks"
+                ],
+                "summary": "Delete kas week",
+                "description": "Deletes a kas week record and associated payments",
+                "operationId": "deleteKasWeek",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Kas week deleted successfully"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            }
+        },
         "/api/lecturers": {
             "get": {
                 "tags": [
@@ -871,6 +1504,54 @@
                 }
             }
         },
+        "/api/reminders/trigger-d-minus-one": {
+            "post": {
+                "tags": [
+                    "Reminders"
+                ],
+                "summary": "Manually trigger H-1 Afternoon Reminders (16:00 WIB)",
+                "description": "Triggers the 16:00 WIB afternoon reminder for tomorrow's classes (or a specific overridden day)",
+                "operationId": "triggerDMinusOneReminder",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "dry_run": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "ignore_holiday": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "day": {
+                                        "type": "string",
+                                        "example": "tuesday",
+                                        "enum": [
+                                            "monday",
+                                            "tuesday",
+                                            "wednesday",
+                                            "thursday",
+                                            "friday",
+                                            "saturday",
+                                            "sunday"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "H-1 Reminders triggered"
+                    }
+                }
+            }
+        },
         "/api/reminders/trigger-morning": {
             "post": {
                 "tags": [
@@ -954,6 +1635,49 @@
                 }
             }
         },
+        "/api/reminders/trigger-daily-tasks": {
+            "post": {
+                "tags": [
+                    "Reminders"
+                ],
+                "summary": "Manually trigger Daily Task Reminder (18:00 WIB)",
+                "description": "Triggers the daily task reminder to the class WhatsApp group",
+                "operationId": "triggerDailyTasksReminder",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "dry_run": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "group": {
+                                        "type": "string",
+                                        "example": "120363028123456789@g.us"
+                                    },
+                                    "force": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "skip_empty": {
+                                        "type": "boolean",
+                                        "example": false
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Daily task reminder processed"
+                    }
+                }
+            }
+        },
         "/api/reminders/logs": {
             "get": {
                 "tags": [
@@ -971,7 +1695,9 @@
                             "type": "string",
                             "enum": [
                                 "morning",
-                                "pre_class"
+                                "pre_class",
+                                "d_minus_1",
+                                "daily_task"
                             ]
                         }
                     },
@@ -1418,6 +2144,217 @@
                 }
             }
         },
+        "/api/students": {
+            "get": {
+                "tags": [
+                    "Students"
+                ],
+                "summary": "Get list of students",
+                "description": "Returns paginated list of students ordered by attendance number. Filterable by is_active and search.",
+                "operationId": "getStudentsList",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
+                        }
+                    },
+                    {
+                        "name": "is_active",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Students"
+                ],
+                "summary": "Create new student",
+                "description": "Creates a new student record",
+                "operationId": "storeStudent",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "attendance_number",
+                                    "name",
+                                    "nickname"
+                                ],
+                                "properties": {
+                                    "attendance_number": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Ahmad Dahlan"
+                                    },
+                                    "nickname": {
+                                        "type": "string",
+                                        "example": "Ahmad"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Student created successfully"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/students/{id}": {
+            "get": {
+                "tags": [
+                    "Students"
+                ],
+                "summary": "Get student by ID",
+                "description": "Returns single student record",
+                "operationId": "getStudentById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Students"
+                ],
+                "summary": "Update existing student",
+                "description": "Updates a student record",
+                "operationId": "updateStudent",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "attendance_number": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Ahmad Dahlan"
+                                    },
+                                    "nickname": {
+                                        "type": "string",
+                                        "example": "Ahmad"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Student updated successfully"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Students"
+                ],
+                "summary": "Delete student",
+                "description": "Deletes a student record",
+                "operationId": "deleteStudent",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Student deleted successfully"
+                    },
+                    "404": {
+                        "description": "Resource Not Found"
+                    }
+                }
+            }
+        },
         "/api/tasks": {
             "get": {
                 "tags": [
@@ -1734,6 +2671,26 @@
         {
             "name": "Holidays",
             "description": "Holidays"
+        },
+        {
+            "name": "Kas - Expenses",
+            "description": "Kas - Expenses"
+        },
+        {
+            "name": "Kas - Payments",
+            "description": "Kas - Payments"
+        },
+        {
+            "name": "Kas - Reports",
+            "description": "Kas - Reports"
+        },
+        {
+            "name": "Kas - Weeks",
+            "description": "Kas - Weeks"
+        },
+        {
+            "name": "Students",
+            "description": "Students"
         },
         {
             "name": "Tasks",
