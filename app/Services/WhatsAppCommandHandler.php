@@ -6,6 +6,7 @@ use App\Models\Course;
 use App\Models\Schedule;
 use App\Models\Semester;
 use App\Models\Task;
+use App\Services\KasSpreadsheetService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -104,6 +105,7 @@ class WhatsAppCommandHandler
             $normalizedCommand === '!jadwal' || $normalizedCommand === '/jadwal' || $normalizedCommand === '!jadwal hari ini' || $normalizedCommand === '/jadwal hari ini' => $this->handleScheduleCommand('today'),
             $normalizedCommand === '!jadwal besok' || $normalizedCommand === '/jadwal besok' => $this->handleScheduleCommand('tomorrow'),
             $normalizedCommand === '!dosen' || $normalizedCommand === '/dosen' || $normalizedCommand === '!pic' || $normalizedCommand === '/pic' => $this->handleLecturersCommand(),
+            $normalizedCommand === '!kas' || $normalizedCommand === '/kas' => $this->handleKasCommand(),
             $normalizedCommand === '!help' || $normalizedCommand === '/help' || $normalizedCommand === '!menu' || $normalizedCommand === '/menu' => $this->handleHelpCommand($currentCount + 1, $dailyLimit),
             default => null,
         };
@@ -260,6 +262,42 @@ class WhatsAppCommandHandler
     }
 
     /**
+     * Handle !kas command
+     */
+    public function handleKasCommand(): string
+    {
+        $spreadsheetService = app(KasSpreadsheetService::class);
+        $payload = $spreadsheetService->buildPayload();
+        $summary = $payload['summary'];
+
+        $balance = 'Rp ' . number_format($summary['balance'], 0, ',', '.');
+        $income = 'Rp ' . number_format($summary['total_income'], 0, ',', '.');
+        $expense = 'Rp ' . number_format($summary['total_expense'], 0, ',', '.');
+        $publicUrl = config('services.kas_spreadsheet.public_url');
+
+        $message = "💰 *LAPORAN KEUANGAN KAS KELAS*\n"
+            . "📅 Per {$payload['generated_at']}\n\n"
+            . "• *Saldo Kas Saat Ini:* {$balance}\n"
+            . "• *Total Pemasukan:* {$income}\n"
+            . "• *Total Pengeluaran:* {$expense}\n\n"
+            . "👥 *Status Pembayaran Siswa:*\n"
+            . "• Lunas: {$summary['all_paid_students_count']} Siswa\n"
+            . "• Belum Lunas: {$summary['arrears_students_count']} Siswa";
+
+        if ($summary['double_arrears_count'] > 0) {
+            $message .= " (Double/Nunggak > 1: {$summary['double_arrears_count']} Siswa)";
+        }
+
+        if (!empty($publicUrl)) {
+            $message .= "\n\n🔗 *Cek Rekap & Status Kamu di Google Spreadsheet:*\n{$publicUrl}";
+        }
+
+        $message .= "\n\n_Catatan: Silakan cek spreadsheet untuk rincian nota pengeluaran dan status iuran masing-masing siswa!_";
+
+        return trim($message);
+    }
+
+    /**
      * Handle !help command
      */
     public function handleHelpCommand(int $currentUsage, int $dailyLimit): string
@@ -272,6 +310,7 @@ class WhatsAppCommandHandler
             . "• *!jadwal* : Cek jadwal perkuliahan hari ini\n"
             . "• *!jadwal besok* : Cek jadwal perkuliahan esok hari\n"
             . "• *!dosen* : Cek daftar kontak dosen & PJ mata kuliah\n"
+            . "• *!kas* : Cek laporan kas kelas & link spreadsheet\n"
             . "• *!help* : Menampilkan panduan bot ini\n\n"
             . "*Status Kuota Grup Hari Ini:*\n"
             . "Penggunaan: {$currentUsage}/{$dailyLimit} kali (Sisa: {$remaining}x)\n\n"

@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\CoursePicController;
 use App\Http\Controllers\Api\HolidayController;
 use App\Http\Controllers\Api\KasExpenseController;
 use App\Http\Controllers\Api\KasPaymentController;
+use App\Http\Controllers\Api\KasSpreadsheetController;
 use App\Http\Controllers\Api\KasWeekController;
 use App\Http\Controllers\Api\LecturerController;
 use App\Http\Controllers\Api\ReminderController;
@@ -55,6 +56,11 @@ Route::prefix('kas')->group(function () {
     Route::get('/weeks/{weekId}/students', [KasPaymentController::class, 'weekStudents']);
     Route::apiResource('weeks', KasWeekController::class);
     Route::apiResource('expenses', KasExpenseController::class);
+
+    // Google Spreadsheet Integration
+    Route::get('/spreadsheet/status', [KasSpreadsheetController::class, 'status']);
+    Route::get('/spreadsheet/payload', [KasSpreadsheetController::class, 'payload']);
+    Route::post('/spreadsheet/sync', [KasSpreadsheetController::class, 'sync']);
 });
 
 // Reminders & WhatsApp Management

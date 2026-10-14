@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\KasWeek;
+use App\Services\KasSpreadsheetService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
@@ -121,6 +122,8 @@ class KasWeekController extends Controller
 
         $week = KasWeek::create($validated);
 
+        app(KasSpreadsheetService::class)->syncQuietly();
+
         return response()->json([
             'success' => true,
             'message' => ($week->type === 'incidental' ? 'Iuran khusus' : 'Kas week') . ' created successfully',
@@ -225,6 +228,8 @@ class KasWeekController extends Controller
 
         $week->update($validated);
 
+        app(KasSpreadsheetService::class)->syncQuietly();
+
         return response()->json([
             'success' => true,
             'message' => 'Kas week updated successfully',
@@ -258,6 +263,8 @@ class KasWeekController extends Controller
         }
 
         $week->delete();
+
+        app(KasSpreadsheetService::class)->syncQuietly();
 
         return response()->json([
             'success' => true,

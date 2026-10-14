@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\KasExpense;
+use App\Services\KasSpreadsheetService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -109,6 +110,8 @@ class KasExpenseController extends Controller
 
         $expense = KasExpense::create($validated);
 
+        app(KasSpreadsheetService::class)->syncQuietly();
+
         return response()->json([
             'success' => true,
             'message' => 'Expense created successfully',
@@ -212,6 +215,8 @@ class KasExpenseController extends Controller
         $expense->update($validated);
         $expense->refresh();
 
+        app(KasSpreadsheetService::class)->syncQuietly();
+
         return response()->json([
             'success' => true,
             'message' => 'Expense updated successfully',
@@ -251,6 +256,8 @@ class KasExpenseController extends Controller
         }
 
         $expense->delete();
+
+        app(KasSpreadsheetService::class)->syncQuietly();
 
         return response()->json([
             'success' => true,

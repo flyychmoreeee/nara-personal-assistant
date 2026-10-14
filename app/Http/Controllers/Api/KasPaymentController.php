@@ -7,6 +7,7 @@ use App\Models\KasExpense;
 use App\Models\KasPayment;
 use App\Models\KasWeek;
 use App\Models\Student;
+use App\Services\KasSpreadsheetService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use OpenApi\Attributes as OA;
@@ -87,6 +88,8 @@ class KasPaymentController extends Controller
             ]);
             $message = $isPaid ? 'Pembayaran berhasil dicatat (Lunas)' : 'Status pembayaran disetel Belum Bayar';
         }
+
+        app(KasSpreadsheetService::class)->syncQuietly();
 
         return response()->json([
             'success' => true,

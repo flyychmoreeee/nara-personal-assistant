@@ -42,5 +42,12 @@ return [
         'daily_command_limit' => env('WHATSAPP_COMMAND_DAILY_LIMIT', 10),
     ],
 
+    'kas_spreadsheet' => [
+        'webhook_url' => env('KAS_SPREADSHEET_WEBHOOK_URL'),
+        'public_url' => env('KAS_SPREADSHEET_PUBLIC_URL'),
+        'auto_sync' => env('KAS_SPREADSHEET_AUTO_SYNC', true),
+        'secret' => env('KAS_SPREADSHEET_SECRET'),
+    ],
+
 ];
 
