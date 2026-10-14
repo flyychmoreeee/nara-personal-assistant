@@ -18,7 +18,7 @@ class KasPaymentController extends Controller
         operationId: 'toggleKasPayment',
         tags: ['Kas - Payments'],
         summary: 'One-Tap Toggle Payment Status',
-        description: 'Toggles a student payment status between paid and unpaid for a specific week',
+        description: 'Toggles a student payment status between paid and unpaid for a specific week, or sets payment method',
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
@@ -26,6 +26,8 @@ class KasPaymentController extends Controller
                 properties: [
                     new OA\Property(property: 'student_id', type: 'integer', example: 1),
                     new OA\Property(property: 'kas_week_id', type: 'integer', example: 1),
+                    new OA\Property(property: 'payment_method', type: 'string', enum: ['cash', 'qris'], default: 'cash', example: 'cash'),
+                    new OA\Property(property: 'status', type: 'string', enum: ['paid', 'unpaid'], nullable: true, example: 'paid'),
                     new OA\Property(property: 'notes', type: 'string', example: 'Bayar tunai'),
                 ]
             )
@@ -40,6 +42,8 @@ class KasPaymentController extends Controller
         $validated = $request->validate([
             'student_id' => 'required|exists:students,id',
             'kas_week_id' => 'required|exists:kas_weeks,id',
+            'payment_method' => 'nullable|string|in:cash,qris',
+            'status' => 'nullable|string|in:paid,unpaid',
             'notes' => 'nullable|string|max:255',
         ]);
 
@@ -48,8 +52,13 @@ class KasPaymentController extends Controller
             ->where('kas_week_id', $validated['kas_week_id'])
             ->first();
 
+        $desiredStatus = $validated['status'] ?? null;
+        $paymentMethod = $validated['payment_method'] ?? null;
+
         if ($payment) {
-            if ($payment->status === 'paid') {
+            $newStatus = $desiredStatus ?? ($payment->status === 'paid' ? 'unpaid' : 'paid');
+
+            if ($newStatus === 'unpaid') {
                 $payment->update([
                     'status' => 'unpaid',
                     'paid_at' => null,
@@ -58,22 +67,25 @@ class KasPaymentController extends Controller
             } else {
                 $payment->update([
                     'status' => 'paid',
-                    'paid_at' => now(),
+                    'paid_at' => $payment->paid_at ?? now(),
                     'amount_paid' => $week->amount,
-                    'notes' => $validated['notes'] ?? $payment->notes,
+                    'payment_method' => $paymentMethod ?? $payment->payment_method ?? KasPayment::METHOD_CASH,
+                    'notes' => array_key_exists('notes', $validated) ? $validated['notes'] : $payment->notes,
                 ]);
                 $message = 'Pembayaran berhasil dicatat (Lunas)';
             }
         } else {
+            $isPaid = ($desiredStatus ?? 'paid') === 'paid';
             $payment = KasPayment::create([
                 'student_id' => $validated['student_id'],
                 'kas_week_id' => $validated['kas_week_id'],
-                'amount_paid' => $week->amount,
-                'status' => 'paid',
-                'paid_at' => now(),
+                'amount_paid' => $isPaid ? $week->amount : 0,
+                'status' => $isPaid ? 'paid' : 'unpaid',
+                'paid_at' => $isPaid ? now() : null,
+                'payment_method' => $paymentMethod ?? KasPayment::METHOD_CASH,
                 'notes' => $validated['notes'] ?? null,
             ]);
-            $message = 'Pembayaran berhasil dicatat (Lunas)';
+            $message = $isPaid ? 'Pembayaran berhasil dicatat (Lunas)' : 'Status pembayaran disetel Belum Bayar';
         }
 
         return response()->json([
@@ -84,8 +96,10 @@ class KasPaymentController extends Controller
                 'kas_week_id' => $payment->kas_week_id,
                 'status' => $payment->status,
                 'is_paid' => $payment->status === 'paid',
+                'payment_method' => $payment->payment_method,
                 'paid_at' => $payment->paid_at,
                 'amount_paid' => $payment->amount_paid,
+                'notes' => $payment->notes,
             ],
         ]);
     }
@@ -145,6 +159,7 @@ class KasPaymentController extends Controller
                 'nickname' => $student->nickname,
                 'is_paid' => $isPaid,
                 'status' => $isPaid ? 'paid' : 'unpaid',
+                'payment_method' => $isPaid ? ($payment->payment_method ?? KasPayment::METHOD_CASH) : null,
                 'amount_paid' => $isPaid ? $payment->amount_paid : 0,
                 'paid_at' => $isPaid ? $payment->paid_at : null,
                 'notes' => $payment ? $payment->notes : null,
@@ -152,10 +167,16 @@ class KasPaymentController extends Controller
         });
 
         $totalStudents = $students->count();
-        $paidCount = $studentList->where('is_paid', true)->count();
+        $paidStudents = $studentList->where('is_paid', true);
+        $paidCount = $paidStudents->count();
         $unpaidCount = $totalStudents - $paidCount;
         $totalCollected = $paidCount * $week->amount;
         $targetAmount = $totalStudents * $week->amount;
+
+        $cashCount = $paidStudents->where('payment_method', KasPayment::METHOD_CASH)->count();
+        $qrisCount = $paidStudents->where('payment_method', KasPayment::METHOD_QRIS)->count();
+        $totalCash = $cashCount * $week->amount;
+        $totalQris = $qrisCount * $week->amount;
 
         return response()->json([
             'success' => true,
@@ -164,7 +185,11 @@ class KasPaymentController extends Controller
                 'total_students' => $totalStudents,
                 'paid_count' => $paidCount,
                 'unpaid_count' => $unpaidCount,
+                'cash_count' => $cashCount,
+                'qris_count' => $qrisCount,
                 'total_collected' => $totalCollected,
+                'total_cash' => $totalCash,
+                'total_qris' => $totalQris,
                 'target_amount' => $targetAmount,
                 'collection_percentage' => $targetAmount > 0 ? round(($totalCollected / $targetAmount) * 100, 1) : 0,
             ],
@@ -185,6 +210,8 @@ class KasPaymentController extends Controller
     public function overview(): JsonResponse
     {
         $totalIncome = (int) KasPayment::where('status', 'paid')->sum('amount_paid');
+        $totalCashIncome = (int) KasPayment::where('status', 'paid')->where('payment_method', KasPayment::METHOD_CASH)->sum('amount_paid');
+        $totalQrisIncome = (int) KasPayment::where('status', 'paid')->where('payment_method', KasPayment::METHOD_QRIS)->sum('amount_paid');
         $totalExpense = (int) KasExpense::sum('amount');
         $balance = $totalIncome - $totalExpense;
 
@@ -194,7 +221,11 @@ class KasPaymentController extends Controller
         $activeWeekStats = null;
         if ($activeWeek) {
             $totalActiveStudents = Student::where('is_active', true)->count();
-            $paidCount = KasPayment::where('kas_week_id', $activeWeek->id)->where('status', 'paid')->count();
+            $paidPayments = KasPayment::where('kas_week_id', $activeWeek->id)->where('status', 'paid')->get();
+            $paidCount = $paidPayments->count();
+            $cashCount = $paidPayments->where('payment_method', KasPayment::METHOD_CASH)->count();
+            $qrisCount = $paidPayments->where('payment_method', KasPayment::METHOD_QRIS)->count();
+
             $activeWeekStats = [
                 'id' => $activeWeek->id,
                 'title' => $activeWeek->title,
@@ -202,7 +233,11 @@ class KasPaymentController extends Controller
                 'total_students' => $totalActiveStudents,
                 'paid_count' => $paidCount,
                 'unpaid_count' => max(0, $totalActiveStudents - $paidCount),
+                'cash_count' => $cashCount,
+                'qris_count' => $qrisCount,
                 'collected' => $paidCount * $activeWeek->amount,
+                'collected_cash' => $cashCount * $activeWeek->amount,
+                'collected_qris' => $qrisCount * $activeWeek->amount,
             ];
         }
 
@@ -216,6 +251,8 @@ class KasPaymentController extends Controller
             'data' => [
                 'balance' => $balance,
                 'total_income' => $totalIncome,
+                'total_cash_income' => $totalCashIncome,
+                'total_qris_income' => $totalQrisIncome,
                 'total_expense' => $totalExpense,
                 'active_week' => $activeWeekStats,
                 'recent_expenses' => $recentExpenses,
@@ -280,7 +317,10 @@ class KasPaymentController extends Controller
         // Group payments by student_id and kas_week_id
         $paymentMap = [];
         foreach ($payments as $p) {
-            $paymentMap[$p->student_id][$p->kas_week_id] = true;
+            $paymentMap[$p->student_id][$p->kas_week_id] = [
+                'is_paid' => true,
+                'payment_method' => $p->payment_method ?? KasPayment::METHOD_CASH,
+            ];
         }
 
         $matrix = $students->map(function ($student) use ($weeks, $paymentMap) {
@@ -289,11 +329,13 @@ class KasPaymentController extends Controller
             $totalArrears = 0;
 
             foreach ($weeks as $w) {
-                $isPaid = isset($paymentMap[$student->id][$w->id]);
+                $paymentInfo = $paymentMap[$student->id][$w->id] ?? null;
+                $isPaid = !is_null($paymentInfo);
                 $weekStatuses[] = [
                     'week_id' => $w->id,
                     'week_title' => $w->title,
                     'is_paid' => $isPaid,
+                    'payment_method' => $isPaid ? ($paymentInfo['payment_method'] ?? KasPayment::METHOD_CASH) : null,
                 ];
 
                 if (!$isPaid) {

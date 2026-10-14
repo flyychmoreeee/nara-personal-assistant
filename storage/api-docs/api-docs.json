@@ -722,12 +722,12 @@
                     "Kas - Expenses"
                 ],
                 "summary": "Create new kas expense",
-                "description": "Creates a new class treasury expense record",
+                "description": "Creates a new class treasury expense record with optional receipt image upload",
                 "operationId": "storeKasExpense",
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
                                 "required": [
                                     "title",
@@ -749,8 +749,9 @@
                                         "example": "2026-09-15"
                                     },
                                     "receipt_image": {
+                                        "description": "Receipt image file (jpg, jpeg, png, webp, max 2MB)",
                                         "type": "string",
-                                        "example": "https://example.com/nota.jpg",
+                                        "format": "binary",
                                         "nullable": true
                                     },
                                     "notes": {
@@ -801,12 +802,12 @@
                     }
                 }
             },
-            "put": {
+            "post": {
                 "tags": [
                     "Kas - Expenses"
                 ],
                 "summary": "Update kas expense",
-                "description": "Updates an existing expense record",
+                "description": "Updates an existing expense record. Uses POST with _method=PUT for file upload support.",
                 "operationId": "updateKasExpense",
                 "parameters": [
                     {
@@ -821,9 +822,14 @@
                 "requestBody": {
                     "required": true,
                     "content": {
-                        "application/json": {
+                        "multipart/form-data": {
                             "schema": {
                                 "properties": {
+                                    "_method": {
+                                        "description": "HTTP method override",
+                                        "type": "string",
+                                        "example": "PUT"
+                                    },
                                     "title": {
                                         "type": "string",
                                         "example": "Beli spidol & penghapus papan tulis"
@@ -838,8 +844,9 @@
                                         "example": "2026-09-15"
                                     },
                                     "receipt_image": {
+                                        "description": "Receipt image file (jpg, jpeg, png, webp, max 2MB)",
                                         "type": "string",
-                                        "example": "https://example.com/nota.jpg",
+                                        "format": "binary",
                                         "nullable": true
                                     },
                                     "notes": {
@@ -898,7 +905,7 @@
                     "Kas - Payments"
                 ],
                 "summary": "One-Tap Toggle Payment Status",
-                "description": "Toggles a student payment status between paid and unpaid for a specific week",
+                "description": "Toggles a student payment status between paid and unpaid for a specific week, or sets payment method",
                 "operationId": "toggleKasPayment",
                 "requestBody": {
                     "required": true,
@@ -917,6 +924,24 @@
                                     "kas_week_id": {
                                         "type": "integer",
                                         "example": 1
+                                    },
+                                    "payment_method": {
+                                        "type": "string",
+                                        "example": "cash",
+                                        "default": "cash",
+                                        "enum": [
+                                            "cash",
+                                            "qris"
+                                        ]
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "example": "paid",
+                                        "nullable": true,
+                                        "enum": [
+                                            "paid",
+                                            "unpaid"
+                                        ]
                                     },
                                     "notes": {
                                         "type": "string",

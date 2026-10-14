@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\KasExpense;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use OpenApi\Attributes as OA;
 
 class KasExpenseController extends Controller
@@ -67,18 +68,21 @@ class KasExpenseController extends Controller
         operationId: 'storeKasExpense',
         tags: ['Kas - Expenses'],
         summary: 'Create new kas expense',
-        description: 'Creates a new class treasury expense record',
+        description: 'Creates a new class treasury expense record with optional receipt image upload',
         requestBody: new OA\RequestBody(
             required: true,
-            content: new OA\JsonContent(
-                required: ['title', 'amount', 'expense_date'],
-                properties: [
-                    new OA\Property(property: 'title', type: 'string', example: 'Beli spidol & penghapus papan tulis'),
-                    new OA\Property(property: 'amount', type: 'integer', example: 25000),
-                    new OA\Property(property: 'expense_date', type: 'string', format: 'date', example: '2026-09-15'),
-                    new OA\Property(property: 'receipt_image', type: 'string', nullable: true, example: 'https://example.com/nota.jpg'),
-                    new OA\Property(property: 'notes', type: 'string', nullable: true, example: 'Beli di fotokopi depan kampus'),
-                ]
+            content: new OA\MediaType(
+                mediaType: 'multipart/form-data',
+                schema: new OA\Schema(
+                    required: ['title', 'amount', 'expense_date'],
+                    properties: [
+                        new OA\Property(property: 'title', type: 'string', example: 'Beli spidol & penghapus papan tulis'),
+                        new OA\Property(property: 'amount', type: 'integer', example: 25000),
+                        new OA\Property(property: 'expense_date', type: 'string', format: 'date', example: '2026-09-15'),
+                        new OA\Property(property: 'receipt_image', type: 'string', format: 'binary', nullable: true, description: 'Receipt image file (jpg, jpeg, png, webp, max 2MB)'),
+                        new OA\Property(property: 'notes', type: 'string', nullable: true, example: 'Beli di fotokopi depan kampus'),
+                    ]
+                )
             )
         ),
         responses: [
@@ -92,9 +96,16 @@ class KasExpenseController extends Controller
             'title' => 'required|string|max:255',
             'amount' => 'required|integer|min:1',
             'expense_date' => 'required|date',
-            'receipt_image' => 'nullable|string|max:1000',
+            'receipt_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'notes' => 'nullable|string',
         ]);
+
+        if ($request->hasFile('receipt_image')) {
+            $path = $request->file('receipt_image')->store('receipts', 'public');
+            $validated['receipt_image'] = $path;
+        } else {
+            $validated['receipt_image'] = null;
+        }
 
         $expense = KasExpense::create($validated);
 
@@ -136,25 +147,29 @@ class KasExpenseController extends Controller
         ]);
     }
 
-    #[OA\Put(
+    #[OA\Post(
         path: '/api/kas/expenses/{id}',
         operationId: 'updateKasExpense',
         tags: ['Kas - Expenses'],
         summary: 'Update kas expense',
-        description: 'Updates an existing expense record',
+        description: 'Updates an existing expense record. Uses POST with _method=PUT for file upload support.',
         parameters: [
             new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'))
         ],
         requestBody: new OA\RequestBody(
             required: true,
-            content: new OA\JsonContent(
-                properties: [
-                    new OA\Property(property: 'title', type: 'string', example: 'Beli spidol & penghapus papan tulis'),
-                    new OA\Property(property: 'amount', type: 'integer', example: 25000),
-                    new OA\Property(property: 'expense_date', type: 'string', format: 'date', example: '2026-09-15'),
-                    new OA\Property(property: 'receipt_image', type: 'string', nullable: true, example: 'https://example.com/nota.jpg'),
-                    new OA\Property(property: 'notes', type: 'string', nullable: true, example: 'Beli di fotokopi depan kampus'),
-                ]
+            content: new OA\MediaType(
+                mediaType: 'multipart/form-data',
+                schema: new OA\Schema(
+                    properties: [
+                        new OA\Property(property: '_method', type: 'string', example: 'PUT', description: 'HTTP method override'),
+                        new OA\Property(property: 'title', type: 'string', example: 'Beli spidol & penghapus papan tulis'),
+                        new OA\Property(property: 'amount', type: 'integer', example: 25000),
+                        new OA\Property(property: 'expense_date', type: 'string', format: 'date', example: '2026-09-15'),
+                        new OA\Property(property: 'receipt_image', type: 'string', format: 'binary', nullable: true, description: 'Receipt image file (jpg, jpeg, png, webp, max 2MB)'),
+                        new OA\Property(property: 'notes', type: 'string', nullable: true, example: 'Beli di fotokopi depan kampus'),
+                    ]
+                )
             )
         ),
         responses: [
@@ -178,11 +193,24 @@ class KasExpenseController extends Controller
             'title' => 'sometimes|required|string|max:255',
             'amount' => 'sometimes|required|integer|min:1',
             'expense_date' => 'sometimes|required|date',
-            'receipt_image' => 'nullable|string|max:1000',
+            'receipt_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'notes' => 'nullable|string',
         ]);
 
+        if ($request->hasFile('receipt_image')) {
+            // Delete old receipt image if exists
+            $oldImage = $expense->getRawOriginal('receipt_image');
+            if ($oldImage) {
+                Storage::disk('public')->delete($oldImage);
+            }
+            $path = $request->file('receipt_image')->store('receipts', 'public');
+            $validated['receipt_image'] = $path;
+        } else {
+            unset($validated['receipt_image']);
+        }
+
         $expense->update($validated);
+        $expense->refresh();
 
         return response()->json([
             'success' => true,
@@ -214,6 +242,12 @@ class KasExpenseController extends Controller
                 'success' => false,
                 'message' => 'Expense not found',
             ], 404);
+        }
+
+        // Delete receipt image file if exists
+        $rawImage = $expense->getRawOriginal('receipt_image');
+        if ($rawImage) {
+            Storage::disk('public')->delete($rawImage);
         }
 
         $expense->delete();
