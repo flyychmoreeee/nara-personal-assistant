@@ -46,12 +46,38 @@ class KasSpreadsheetService
         }
 
         // 2. Fetch all expenses
+        $baseUrl = rtrim(config('app.url') ?: env('APP_URL', 'https://nara.trivox.id'), '/');
+
         $expenses = KasExpense::orderBy('expense_date', 'desc')
             ->orderBy('id', 'desc')
             ->get()
-            ->map(function ($item, $index) {
+            ->map(function ($item, $index) use ($baseUrl) {
                 $rawDate = $item->expense_date;
                 $formattedDate = $rawDate ? Carbon::parse($rawDate)->locale('id')->translatedFormat('d/m/Y') : '-';
+
+                $rawReceipt = $item->getRawOriginal('receipt_image') ?: $item->receipt_image;
+                $receiptUrl = null;
+
+                if (!empty($rawReceipt)) {
+                    if (preg_match('/^https?:\/\//i', $rawReceipt)) {
+                        $parsedPath = parse_url($rawReceipt, PHP_URL_PATH);
+                        $cleanPath = ltrim($parsedPath ?: '', '/');
+                        if (!empty($cleanPath)) {
+                            if (!str_starts_with($cleanPath, 'storage/')) {
+                                $cleanPath = 'storage/' . $cleanPath;
+                            }
+                            $receiptUrl = "{$baseUrl}/{$cleanPath}";
+                        } else {
+                            $receiptUrl = $rawReceipt;
+                        }
+                    } else {
+                        $cleanPath = ltrim($rawReceipt, '/');
+                        if (!str_starts_with($cleanPath, 'storage/')) {
+                            $cleanPath = 'storage/' . $cleanPath;
+                        }
+                        $receiptUrl = "{$baseUrl}/{$cleanPath}";
+                    }
+                }
 
                 return [
                     'no' => $index + 1,
@@ -61,7 +87,7 @@ class KasSpreadsheetService
                     'title' => $item->title,
                     'amount' => (int) $item->amount,
                     'notes' => $item->notes ?: '-',
-                    'receipt_url' => $item->receipt_image ?: null,
+                    'receipt_url' => $receiptUrl,
                 ];
             })
             ->values()
